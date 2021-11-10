@@ -43,6 +43,13 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);         // Respond with 'Ok' (we will replace this)
 });
 
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const {shortURL} = req.params;
+  delete urlDatabase[shortURL];
+  res.redirect('/urls');
+});
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
