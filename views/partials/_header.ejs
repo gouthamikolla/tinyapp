@@ -13,16 +13,14 @@
           <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         </li>
       </ul>
-      <%if (username !== 'undefined') { %>
-        <form class="form-inline my-2 my-lg-0" action="/login" method="POST">
-          <label style="margin-right: 1em;">Logged In As: TinyApp  <%= username %></label>
-          <input type="submit" name="logout" class="btn btn-outline-dark" value="Logout">
-        </form>
+      <%if (locals.user && locals.user !== 'undefined') { %>
+          <form class="form-inline my-2 my-lg-0" action="/logout" method="POST">
+            <label style="margin-right: 1em;">Logged In As: TinyApp  <%= user.email %></label>
+            <input type="submit" name="logout" class="btn btn-outline-dark" value="Logout">
+          </form>
         <% }  else { %>
-      <form class="form-inline my-2 my-lg-0" action="/login" method="POST">
-        <input class="form-control mr-sm-2" type="text" name="username" placeholder="Username">
-        <input type="submit" name="login" class="btn btn-outline-dark" value="Login">
-      </form>
+            <a class="nav-item nav-link" href="/login">Login</a>
+            <a class="nav-item nav-link" href="/register">Register</a>
       <% } %>
     </div>
   </nav>
