@@ -4,7 +4,7 @@ const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567
 
 const urlsForUser = function(userId , urlsDB) {
   const userURLs = {};
-  // console.log("urlsDB",urlsDB, userId);
+
   for (let shorturl in urlsDB) {
     const {longURL , userID} = urlsDB[shorturl];
     if (userId === userID)
@@ -14,7 +14,6 @@ const urlsForUser = function(userId , urlsDB) {
 };
 
 const validateShortURLForUser = function(userId, shortUrl,urlsDB) {
-  console.log("getShortURLForUser", urlsDB);
   const userURLs = urlsForUser(userId,urlsDB);
   for (let key of Object.keys(userURLs)) {
     if (shortUrl === key)
@@ -22,7 +21,6 @@ const validateShortURLForUser = function(userId, shortUrl,urlsDB) {
   }
   return {data: null};
 };
-
 
 const getUserByEmail = function(email,usersDB) {
   
@@ -32,7 +30,6 @@ const getUserByEmail = function(email,usersDB) {
   }
   return undefined;
 };
-
 
 const authenticateLoginUser = function(email , password , usersDB) {
 
@@ -67,7 +64,6 @@ const authenticateUserInfo = function(email , password , usersDB) {
   return {"error": null};
 };
 
-
 const generateRandomString = function() {
   let result = '';
   const charactersLength = characters.length;
@@ -76,6 +72,5 @@ const generateRandomString = function() {
   }
   return result;
 };
-
 
 module.exports = {generateRandomString , authenticateUserInfo , authenticateLoginUser,getUserByEmail,urlsForUser,validateShortURLForUser};

@@ -15,11 +15,10 @@ app.use(cookieSession({
   name: 'tinyapp',
   keys: ["user_id"],
   // Cookie Options
-  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  maxAge: 24 * 60 * 60 * 1000
 }));
 const urlDatabase = {};
   
-
 app.get("/", (req, res) => {
   res.render("login");
 });
@@ -41,7 +40,6 @@ app.get("/urls", (req, res) => {
   console.log("user",user);
   if (user) {
     const userURLs = urlsForUser(user["id"], urlDatabase);
-    // console.log("userURLs",userURLs);
     const templateVars = { urls: userURLs , "user" : user};
     res.render("urls_index", templateVars);
   } else {
@@ -50,15 +48,13 @@ app.get("/urls", (req, res) => {
   
 });
 app.post("/urls", (req, res) => {
-  //console.log(req.body);  // Log the POST request body to the console
   const userID = users[req.session.user_id];
 
   const {longURL} = req.body;
   const shortURL = generateRandomString();
-  //console.log(shortURL);
   urlDatabase[shortURL] = {"longURL" : longURL, "userID": userID["id"] };
   console.log("userID",userID , urlDatabase);
-  res.redirect(`/urls`);         // Respond with 'Ok' (we will replace this)
+  res.redirect(`/urls`);
 });
 
 
@@ -77,7 +73,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   
 });
 
-app.post("/urls/:shortURL/edit", (req, res) => {
+app.get("/urls/:shortURL/edit", (req, res) => {
   const user = users[req.session.user_id];
   if (user) {
     const shortURL = req.params.shortURL;
@@ -101,7 +97,6 @@ app.post("/urls/:id", (req, res) => {
   res.redirect('/urls');
 });
 
-
 app.get("/urls/new", (req, res) => {
   const user = users[req.session.user_id];
   if (user) {
@@ -120,9 +115,7 @@ app.get("/urls/:shortURL", (req, res) => {
     const {data} = validateShortURLForUser(user["id"], shortURL,urlDatabase);
     if (shortURL === data) {
       const {longURL , userID} = urlDatabase[shortURL];
-      //console.log(req.params.shortURL, urlDatabase, longURL);
       const templateVars = { shortURL: req.params.shortURL, longURL: longURL , "user":user};
-      //console.log(templateVars);
       res.render("urls_show", templateVars);
     } else {
       res.status(400).send(`Please enter valid ShortURL. <a href="/urls">URLs</a> `);
@@ -151,7 +144,6 @@ app.post("/login", (req, res) => {
     res.status(400).send(`${error}. Please try again :  <a href="/login">Login</a>`);
   } else {
     const user = getUserByEmail(email,users);
-    // console.log("id-", id);
     req.session.user_id =  user["id"];
     res.redirect("/urls");
   }
@@ -167,6 +159,10 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  const user = users[req.session.user_id];
+  if (user)
+    res.redirect("/urls");
+
   res.render("register_user");
 });
 
@@ -181,7 +177,7 @@ app.post("/register", (req, res) => {
     const hashedPassword = bcrypt.hashSync(password, 10);
     users[id] = {"id":id,"email":email,"password":hashedPassword};
     req.session.user_id =  id;
-    res.redirect("/");
+    res.redirect("/urls");
   }
   
 });
