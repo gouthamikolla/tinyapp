@@ -2,7 +2,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 //const cookieParser = require('cookie-parser');
-const {generateRandomString , authenticateUserInfo , authenticateLoginUser,getUseIdBasedOnEmail,urlsForUser,validateShortURLForUser} = require('./helpers/helper');
+const {generateRandomString , authenticateUserInfo , authenticateLoginUser,getUserByEmail,urlsForUser,validateShortURLForUser} = require('./helpers/helpers');
 let cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const app = express();
@@ -150,9 +150,9 @@ app.post("/login", (req, res) => {
   if (error) {
     res.status(400).send(`${error}. Please try again :  <a href="/login">Login</a>`);
   } else {
-    const {id} = getUseIdBasedOnEmail(email,users);
+    const user = getUserByEmail(email,users);
     // console.log("id-", id);
-    req.session.user_id =  id;
+    req.session.user_id =  user["id"];
     res.redirect("/urls");
   }
 });

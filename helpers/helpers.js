@@ -24,13 +24,13 @@ const validateShortURLForUser = function(userId, shortUrl,urlsDB) {
 };
 
 
-const getUseIdBasedOnEmail = function(email,usersDB) {
+const getUserByEmail = function(email,usersDB) {
   
   for (let user in usersDB) {
     if (usersDB[user]["email"] === email)
-      return {"id": usersDB[user]["id"]};
+      return  usersDB[user];
   }
-  return {error: null};
+  return undefined;
 };
 
 
@@ -78,4 +78,4 @@ const generateRandomString = function() {
 };
 
 
-module.exports = {generateRandomString , authenticateUserInfo , authenticateLoginUser,getUseIdBasedOnEmail,urlsForUser,validateShortURLForUser};
+module.exports = {generateRandomString , authenticateUserInfo , authenticateLoginUser,getUserByEmail,urlsForUser,validateShortURLForUser};
