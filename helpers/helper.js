@@ -1,8 +1,10 @@
+const bcrypt = require('bcryptjs');
+
 const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 const urlsForUser = function(userId , urlsDB) {
   const userURLs = {};
-  console.log("urlsDB",urlsDB, userId);
+  // console.log("urlsDB",urlsDB, userId);
   for (let shorturl in urlsDB) {
     const {longURL , userID} = urlsDB[shorturl];
     if (userId === userID)
@@ -35,7 +37,7 @@ const getUseIdBasedOnEmail = function(email,usersDB) {
 const authenticateLoginUser = function(email , password , usersDB) {
 
   for (let user in usersDB) {
-    if (usersDB[user]["email"] === email && usersDB[user]["password"] === password)
+    if (usersDB[user]["email"] === email && bcrypt.compareSync(password, usersDB[user]["password"]))
       return {error: null};
   }
   return {error : "Email and Password does not match."};
