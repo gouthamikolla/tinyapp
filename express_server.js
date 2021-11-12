@@ -11,10 +11,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine","ejs");
 app.use(cookieParser());
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+const urlDatabase = {};
+  
 
 app.get("/", (req, res) => {
   res.render("login");
@@ -34,15 +32,21 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user = users[req.cookies["user_id"]];
-  const templateVars = { urls: urlDatabase , "user" : user};
-  res.render("urls_index", templateVars);
+  if (user) {
+    const templateVars = { urls: urlDatabase , "user" : user};
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/login");
+  }
+  
 });
 app.post("/urls", (req, res) => {
   //console.log(req.body);  // Log the POST request body to the console
+  const userID = users[req.cookies["user_id"]];
   const {longURL} = req.body;
   const shortURL = generateRandomString();
   //console.log(shortURL);
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {"longURL" : longURL, "userID": userID };
   res.redirect(`/urls/${shortURL}`);         // Respond with 'Ok' (we will replace this)
 });
 
@@ -55,47 +59,59 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.post("/urls/:shortURL/edit", (req, res) => {
   const user = users[req.cookies["user_id"]];
-  const longURL = urlDatabase[req.params.shortURL];
+  const {longURL,userID} = urlDatabase[req.params.shortURL];
   const templateVars = { shortURL: req.params.shortURL, longURL: longURL , "user":user};
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls/:id", (req, res) => {
+  const userID = users[req.cookies["user_id"]];
   const {id} = req.params;
   const {longURL} = req.body;
-  urlDatabase[id] = longURL;
+  urlDatabase[id] = {"longURL" : longURL , "userID" : userID };
   res.redirect('/urls');
 });
 
+
 app.get("/urls/new", (req, res) => {
-  
   const user = users[req.cookies["user_id"]];
-  const templateVars = { "user" : user};
-  res.render("urls_new",templateVars);
+  if (user) {
+    const templateVars = { "user" : user};
+    res.render("urls_new",templateVars);
+  } else {
+    res.redirect("/login");
+  }
+  
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const user = users[req.cookies["user_id"]];
-  const longURL = urlDatabase[req.params.shortURL];
-  //console.log(req.params.shortURL, urlDatabase, longURL);
-  const templateVars = { shortURL: req.params.shortURL, longURL: longURL , "user":user};
-  //console.log(templateVars);
-  res.render("urls_show", templateVars);
+  const shortURL = req.params.shortURL;
+  if (shortURL) {
+    const {longURL , userID} = urlDatabase[shortURL];
+    //console.log(req.params.shortURL, urlDatabase, longURL);
+    const templateVars = { shortURL: req.params.shortURL, longURL: longURL , "user":user};
+    //console.log(templateVars);
+    res.render("urls_show", templateVars);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const user = users[req.cookies["user_id"]];
-  const templateVars = { "user":user };
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL,templateVars);
+  const shortURL = req.params.shortURL;
+  if (urlDatabase[shortURL]) {
+    const  {longURL , userID}  = urlDatabase[shortURL];
+    res.redirect(longURL);
+  } else {
+    res.status(400).send(`<p>Invalid ShortURL : ${shortURL}</p>`);
+  }
+  
 });
 
 app.post("/login", (req, res) => {
   const {email,password} = req.body;
   const { error } = authenticateLoginUser(email,password,users);
-  console.log("login failed", error);
   if (error) {
-    res.status(403);
+    res.status(400).send(`${error}. Please try again :  <a href="/login">Login</a>`);
   } else {
     const {id} = getUseIdBasedOnEmail(email,users);
     console.log("id" , id);
@@ -119,7 +135,7 @@ app.get("/register", (req, res) => {
 });
 
 const getUseIdBasedOnEmail = function(email,usersDB) {
-  console.log(usersDB);
+  
   for (let user in usersDB) {
     if (usersDB[user]["email"] === email)
       return {"id": usersDB[user]["id"]};
@@ -134,11 +150,10 @@ const authenticateLoginUser = function(email , password , usersDB) {
     if (usersDB[user]["email"] === email && usersDB[user]["password"] === password)
       return {error: null};
   }
-  return {error : "INVALID DETAILS"};
+  return {error : "Email and Password does not match."};
 };
 
 const userAlreadyExist = function(email,usersDB) {
-  console.log(usersDB);
   for (let user in usersDB) {
     if (usersDB[user]["email"] === email)
       return {error: "Email Exists"};
@@ -148,28 +163,27 @@ const userAlreadyExist = function(email,usersDB) {
 
 const authenticateUserInfo = function(email , password , usersDB) {
 
-  if (email === "" || email.trim().length === 0)
-    return {"error": "BAD email"};
+  if (!email || email.trim() === "")
+    return {"error": "Invalid Email"};
 
-  if (password === "" || password.trim().length === 0)
-    return {"error": "BAD pasword"};
+  if (!password || password.trim() === "")
+    return {"error": "Invalid pasword"};
 
-  const {error} = userAlreadyExist(email,usersDB);
-  
+  const {error} = userAlreadyExist(email, usersDB);
+
   if (error)
-    return {"error" : error};
+    return {"error": error};
 
   return {"error": null};
 };
 
 
 app.post("/register", (req, res) => {
-  //console.log(req);
+  
   const {email,password} = req.body;
   const { error} = authenticateUserInfo(email,password,users);
-
   if (error) {
-    res.status(400).end();
+    res.status(400).send(`${error}. Please try again :  <a href="/register">Register</a>`);
   } else {
     const id = generateRandomString();
     users[id] = {"id":id,"email":email,"password":password};
