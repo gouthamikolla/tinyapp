@@ -19,25 +19,44 @@ app.use(cookieSession({
 }));
 const urlDatabase = {};
   
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
+
+
 app.get("/", (req, res) => {
   res.render("login");
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+
+app.get("/login", (req, res) => {
+
+  const user = users[req.session.user_id];
+  if (user) {
+    req.session.user_id = user.id;
+    return res.redirect("/urls");
+  }
+  res.render("login");
+});
+
+app.get("/register", (req, res) => {
+  const user = users[req.session.user_id];
+  if (user) {
+    req.session.user_id = user.id;
+    return res.redirect("/urls");
+  }
+
+  res.render("register_user");
 });
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
 
 app.get("/urls", (req, res) => {
   const user = users[req.session.user_id];
-  console.log("user",user);
   if (user) {
     const userURLs = urlsForUser(user["id"], urlDatabase);
     const templateVars = { urls: userURLs , "user" : user};
@@ -47,31 +66,7 @@ app.get("/urls", (req, res) => {
   }
   
 });
-app.post("/urls", (req, res) => {
-  const userID = users[req.session.user_id];
 
-  const {longURL} = req.body;
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = {"longURL" : longURL, "userID": userID["id"] };
-  console.log("userID",userID , urlDatabase);
-  res.redirect(`/urls`);
-});
-
-
-app.post("/urls/:shortURL/delete", (req, res) => {
-  const user = users[req.session.user_id];
-  if (user) {
-    const {shortURL} = req.params;
-    const {data} = validateShortURLForUser(user["id"],shortURL, urlDatabase);
-    if (shortURL === data) {
-      delete urlDatabase[shortURL];
-      res.redirect('/urls');
-    } else {
-      res.status(400).send(`You are not Authorized to delete. <a href="/urls">URLs</a>`);
-    }
-  }
-  
-});
 
 app.get("/urls/:shortURL/edit", (req, res) => {
   const user = users[req.session.user_id];
@@ -87,14 +82,6 @@ app.get("/urls/:shortURL/edit", (req, res) => {
     }
   }
   
-});
-
-app.post("/urls/:id", (req, res) => {
-  const userID = users[req.session.user_id];
-  const {id} = req.params;
-  const {longURL} = req.body;
-  urlDatabase[id] = {"longURL" : longURL , "userID" : userID["id"] };
-  res.redirect('/urls');
 });
 
 app.get("/urls/new", (req, res) => {
@@ -137,6 +124,41 @@ app.get("/u/:shortURL", (req, res) => {
   
 });
 
+app.post("/urls", (req, res) => {
+  const userID = users[req.session.user_id];
+  const {longURL} = req.body;
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = {"longURL" : longURL, "userID": userID["id"] };
+  res.redirect(`/urls`);
+});
+
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const user = users[req.session.user_id];
+  if (user) {
+    const {shortURL} = req.params;
+    const {data} = validateShortURLForUser(user["id"],shortURL, urlDatabase);
+    if (shortURL === data) {
+      delete urlDatabase[shortURL];
+      res.redirect('/urls');
+    } else {
+      res.status(400).send(`You are not Authorized to delete. <a href="/urls">URLs</a>`);
+    }
+  }
+  
+});
+
+
+app.post("/urls/:id", (req, res) => {
+  const userID = users[req.session.user_id];
+  const {id} = req.params;
+  const {longURL} = req.body;
+  urlDatabase[id] = {"longURL" : longURL , "userID" : userID["id"] };
+  res.redirect('/urls');
+});
+
+
+
 app.post("/login", (req, res) => {
   const {email,password} = req.body;
   const { error } = authenticateLoginUser(email,password,users);
@@ -154,17 +176,6 @@ app.post("/logout", (req, res) => {
   res.redirect("/login");
 });
 
-app.get("/login", (req, res) => {
-  res.render("login");
-});
-
-app.get("/register", (req, res) => {
-  const user = users[req.session.user_id];
-  if (user)
-    res.redirect("/urls");
-
-  res.render("register_user");
-});
 
 app.post("/register", (req, res) => {
   
