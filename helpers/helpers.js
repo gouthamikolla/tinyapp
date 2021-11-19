@@ -2,6 +2,12 @@ const bcrypt = require('bcryptjs');
 
 const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
+/**
+ * It returns all URLs that are assigned to particular user.
+ * @param {String} userId
+ * @param {Array} urlsDB
+ * @returns {Array}
+ */
 const urlsForUser = function(userId , urlsDB) {
   const userURLs = {};
 
@@ -13,6 +19,13 @@ const urlsForUser = function(userId , urlsDB) {
   return userURLs;
 };
 
+/**
+ *  It validates the passed shortURL to a particular user passed and it returns that as object.
+ * @param {String} userId
+ * @param {String} shortUrl
+ * @param {Array} urlsDB
+ * @returns {Object}
+ */
 const validateShortURLForUser = function(userId, shortUrl,urlsDB) {
   const userURLs = urlsForUser(userId,urlsDB);
   for (let key of Object.keys(userURLs)) {
@@ -22,6 +35,12 @@ const validateShortURLForUser = function(userId, shortUrl,urlsDB) {
   return {data: null};
 };
 
+/**
+ * It returns the user object for particular email passed if available in userDB. If not, returns undefined object.
+ * @param {String} email
+ * @param {Array} usersDB
+ * @returns {Object}
+ */
 const getUserByEmail = function(email,usersDB) {
   
   for (let user in usersDB) {
@@ -31,6 +50,13 @@ const getUserByEmail = function(email,usersDB) {
   return undefined;
 };
 
+/**
+ * It authenticates user credentials that are passed and returns object based on that.
+ * @param {String} email
+ * @param {String} password
+ * @param {Array} usersDB
+ * @returns {Object}
+ */
 const authenticateLoginUser = function(email , password , usersDB) {
 
   for (let user in usersDB) {
@@ -40,6 +66,12 @@ const authenticateLoginUser = function(email , password , usersDB) {
   return {error : "Email and Password does not match."};
 };
 
+/**
+ * It checks if the passed email already exists with any existing user or not and returns error pbject based on validation.
+ * @param {String} email
+ * @param {Array} usersDB
+ * @returns {Object}
+ */
 const userAlreadyExist = function(email,usersDB) {
   for (let user in usersDB) {
     if (usersDB[user]["email"] === email)
@@ -48,6 +80,13 @@ const userAlreadyExist = function(email,usersDB) {
   return {error: null};
 };
 
+/**
+ * It authenticates passed user information to make sure there are no null,'' and also validates if these detals already exist for other user and returns error object based on that validation.
+ * @param {String} email
+ * @param {String} password
+ * @param {Array} usersDB
+ * @returns {Object}
+ */
 const authenticateUserInfo = function(email , password , usersDB) {
 
   if (!email || email.trim() === "")
@@ -64,6 +103,10 @@ const authenticateUserInfo = function(email , password , usersDB) {
   return {"error": null};
 };
 
+/**
+ * It generated random string and returns it.
+ * @returns {String}
+ */
 const generateRandomString = function() {
   let result = '';
   const charactersLength = characters.length;

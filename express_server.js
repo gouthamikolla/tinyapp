@@ -19,7 +19,9 @@ app.use(cookieSession({
 }));
 const urlDatabase = {};
   
-
+/*
+  Web server is listening on this port.
+*/
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -29,7 +31,9 @@ app.get("/", (req, res) => {
   res.render("login");
 });
 
-
+/*
+  This method will check, if user is alreday logged-in or not. If logged-in, redirects to /urls link, if not shows login page to user for login.
+*/
 app.get("/login", (req, res) => {
 
   const user = users[req.session.user_id];
@@ -40,6 +44,9 @@ app.get("/login", (req, res) => {
   res.render("login");
 });
 
+/*
+  This method will check, if user is alreday rtegisteted or not. If registered, redirects to /urls link, if not shows login page to user for login.
+*/
 app.get("/register", (req, res) => {
   const user = users[req.session.user_id];
   if (user) {
@@ -50,11 +57,16 @@ app.get("/register", (req, res) => {
   res.render("register_user");
 });
 
+/*
+  This method will give all users data in JSON format.
+*/
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-
+/*
+  This method handles when user clicks on 'My URLs' button.If user already logged-in, it shows all urls for that user, if not it asks user to login.
+*/
 app.get("/urls", (req, res) => {
   const user = users[req.session.user_id];
   if (user) {
@@ -67,23 +79,9 @@ app.get("/urls", (req, res) => {
   
 });
 
-
-app.get("/urls/:shortURL/edit", (req, res) => {
-  const user = users[req.session.user_id];
-  if (user) {
-    const shortURL = req.params.shortURL;
-    const {data} = validateShortURLForUser(user["id"],shortURL, urlDatabase);
-    if (data === shortURL) {
-      const {longURL,userID} = urlDatabase[shortURL];
-      const templateVars = { shortURL: req.params.shortURL, longURL: longURL , "user":user};
-      res.render("urls_show", templateVars);
-    } else {
-      res.status(400).send(`You are not Authorized to edit. <a href="/urls">URLs</a>`);
-    }
-  }
-  
-});
-
+/*
+  This methods handles 'Create New URL' button. When user clicks on it, based on user validation in session, it shows 'urls_new' page else redictes to login page.
+*/
 app.get("/urls/new", (req, res) => {
   const user = users[req.session.user_id];
   if (user) {
@@ -95,6 +93,9 @@ app.get("/urls/new", (req, res) => {
   
 });
 
+/*
+  This method handles when user clicks on 'Edit' button for any particular URL. It shows URLs edit page for user to edit after successfull validation. If not, redicts to login/register again.
+*/
 app.get("/urls/:shortURL", (req, res) => {
   const user = users[req.session.user_id];
   const shortURL = req.params.shortURL;
@@ -112,6 +113,9 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
+/**
+ * When user enters 'u/{shortURL}' in browser, this method validates that shortURL and redirects to that particular longURL.
+ */
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   
@@ -124,6 +128,9 @@ app.get("/u/:shortURL", (req, res) => {
   
 });
 
+/*
+  This methods handles for creating new url. When user enter new URL and do submit, it creates new shortURL for that one and then redirects to /urls page to show all URLs for that user.
+*/
 app.post("/urls", (req, res) => {
   const userID = users[req.session.user_id];
   const {longURL} = req.body;
@@ -132,7 +139,9 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls`);
 });
 
-
+/**
+ * This method handles delete button. It valdaites if url belongs to user or not. Based on that, it deletes that shortURL, if not send HTML to user saying, 'not authorised' to delete that URL.
+ */
 app.post("/urls/:shortURL/delete", (req, res) => {
   const user = users[req.session.user_id];
   if (user) {
@@ -148,7 +157,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   
 });
 
-
+/*
+  When user edits existing url and submit, then this methods takes modifies URL and saves to urlsDB and redicts to /urls link to show all urls with edit one.
+*/
 app.post("/urls/:id", (req, res) => {
   const userID = users[req.session.user_id];
   const {id} = req.params;
@@ -158,7 +169,9 @@ app.post("/urls/:id", (req, res) => {
 });
 
 
-
+/**
+ * This method handles login button. It authenticates all fields and based on that it redirects to link /urls for success else sends a html with a login link to login again.
+ */
 app.post("/login", (req, res) => {
   const {email,password} = req.body;
   const { error } = authenticateLoginUser(email,password,users);
@@ -171,12 +184,17 @@ app.post("/login", (req, res) => {
   }
 });
 
+/**
+ * This method handles logout button. It nullifies session and redirects to /login link for user to login again.
+ */
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/login");
 });
 
-
+/**
+ * This method handles register button. If user authenticates correctly, redirects to link /urls for success else sends a html with a register link to register.
+ */
 app.post("/register", (req, res) => {
   
   const {email,password} = req.body;
